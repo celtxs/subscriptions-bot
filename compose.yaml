@@ -1,0 +1,54 @@
+name: subscriptions-bot
+services:
+  subscriptions-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: subscriptions-bot:local
+    container_name: subscriptions-bot
+    restart: unless-stopped
+    init: true
+    user: "10001:10001"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 256m
+    mem_reservation: 128m
+    memswap_limit: 384m
+    cpus: 0.25
+    env_file:
+      - .env
+    environment:
+      DB_PATH: /app/data/subscriptions.db
+      ENCRYPTION_KEY_PATH: /run/secrets/subscriptions_encryption_key
+      TIMEZONE: Europe/Moscow
+    volumes:
+      - subscriptions-data:/app/data
+    secrets:
+      - subscriptions_encryption_key
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid,nodev,mode=1777
+      - /app/var:size=8m,noexec,nosuid,nodev,mode=0755
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+networks:
+  default:
+    name: subscriptions-bot_default
+volumes:
+  subscriptions-data:
+    name: subscriptions-data
+secrets:
+  subscriptions_encryption_key:
+    file: ./secrets/encryption.key
