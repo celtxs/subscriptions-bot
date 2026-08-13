@@ -28,7 +28,11 @@ services:
     volumes:
       - subscriptions-data:/app/data
     secrets:
-      - subscriptions_encryption_key
+      - source: subscriptions_encryption_key
+        target: subscriptions_encryption_key
+        uid: "10001"
+        gid: "10001"
+        mode: 0400
     tmpfs:
       - /tmp:size=32m,noexec,nosuid,nodev,mode=1777
       - /app/var:size=8m,noexec,nosuid,nodev,mode=0755
