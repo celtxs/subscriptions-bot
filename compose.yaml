@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     init: true
     user: "10001:10001"
+    group_add:
+      - "1000"
     read_only: true
     cap_drop:
       - ALL
@@ -27,12 +29,10 @@ services:
       TIMEZONE: Europe/Moscow
     volumes:
       - subscriptions-data:/app/data
-    secrets:
-      - source: subscriptions_encryption_key
-        target: subscriptions_encryption_key
-        uid: "10001"
-        gid: "10001"
-        mode: 0400
+      - type: bind
+        source: ./secrets/encryption.key
+        target: /run/secrets/subscriptions_encryption_key
+        read_only: true
     tmpfs:
       - /tmp:size=32m,noexec,nosuid,nodev,mode=1777
       - /app/var:size=8m,noexec,nosuid,nodev,mode=0755
@@ -53,6 +53,3 @@ networks:
 volumes:
   subscriptions-data:
     name: subscriptions-data
-secrets:
-  subscriptions_encryption_key:
-    file: ./secrets/encryption.key
